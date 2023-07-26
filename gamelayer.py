@@ -47,6 +47,7 @@ class GameLayer(Layer):
         # create properties for score and scrap
         self.score = 0
         self.scrap = 40
+        self.bunker_health = self.bunker.health
         self.turrets = []
 
         # schedule game loop to run every frame
@@ -69,6 +70,15 @@ class GameLayer(Layer):
     def score(self, val):
         self._score = val
         self.hud.update_score(val)
+
+    @property
+    def bunker_health(self):
+        return self._bunker_health
+
+    @bunker_health.setter
+    def bunker_health(self, val):
+        self._bunker_health = val
+        self.hud.update_bunker_health(val)
 
     def create_enemy(self):
         # get tank spawn coordinates from scenario
@@ -95,6 +105,7 @@ class GameLayer(Layer):
         for obj in self.collman_enemies.iter_colliding(self.bunker):
             # crash it!
             self.bunker.collide(obj)
+            self.bunker_health = self.bunker.health
 
         # check each turret to see if it has a tank in range
         for turret in self.turrets:
@@ -104,7 +115,7 @@ class GameLayer(Layer):
             turret.collide(obj)
 
         # small probability of spawning a tank
-        if random.random() < 0.005:
+        if random.random() < 0.01:
             self.create_enemy()
 
     def on_mouse_press(self, x, y, buttons, mod):
@@ -142,6 +153,7 @@ class HUD(Layer):
         # create labels for score and scrap
         self.score_text = self._create_text(60, h - 40)
         self.scrap_text = self._create_text(w - 60, h - 40)
+        self.bunker_health_text = self._create_text(w/2, h - 40)
 
     def _create_text(self, x, y):
         text = Label(font_size=18, font_name="Oswald",
@@ -155,6 +167,9 @@ class HUD(Layer):
 
     def update_scrap(self, scrap):
         self.scrap_text.element.text = "Scrap: {}".format(scrap)
+    
+    def update_bunker_health(self, bunker):
+        self.bunker_health_text.element.text = "Bunker: {}".format(bunker)
 
 
 def game_over():
