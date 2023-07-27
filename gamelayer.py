@@ -9,7 +9,13 @@ from scenario import get_scenario_1
 import actors as actors
 import mainmenu as mainmenu
 import random
+from pyglet.media import load as mload
 
+def exploding_tank():
+    return mload("sfx/explosion.wav")
+
+def background_music():
+    return mload("sfx/PinkPanther30.wav")
 
 def new_game():
     scenario = get_scenario_1()
@@ -26,6 +32,9 @@ class GameLayer(Layer):
         super().__init__()
         self.hud = hud
         self.scenario = scenario
+        self.background_music = background_music()
+        self.background_music = self.background_music.play()
+        self.background_music.loop = True
 
         # create and add the Bunker
         self.bunker = actors.Bunker(*scenario.bunker_position)
@@ -106,6 +115,8 @@ class GameLayer(Layer):
             # crash it!
             self.bunker.collide(obj)
             self.bunker_health = self.bunker.health
+            self.exploding_tank = exploding_tank()
+            self.exploding_tank.play()
 
         # check each turret to see if it has a tank in range
         for turret in self.turrets:
@@ -137,6 +148,7 @@ class GameLayer(Layer):
 
     def remove(self, obj):
         if obj is self.bunker:
+            self.background_music.loop = False
             director.replace(SplitColsTransition(game_over()))
         elif isinstance(obj, actors.Enemy) and obj.destroyed_by_player:
             self.score += obj.points
